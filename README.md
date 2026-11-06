@@ -1,0 +1,59 @@
+# TerryMok
+
+Reproducible classification of English technical messages with TF-IDF and logistic regression. An ML engineering portfolio project covering data separation, baseline evaluation, offline tests, and CI.
+
+**Status:** initial implementation. Training and tests have not yet been executed in the development environment. No benchmark results are claimed.
+
+## Problem and data
+
+Predict one of four technical discussion categories: computer graphics, Windows, IBM PC hardware, or Mac hardware. This is a prototype of topic routing; it is not a validated customer-support system.
+
+The [20 Newsgroups loader](https://scikit-learn.org/stable/modules/generated/sklearn.datasets.fetch_20newsgroups.html) provides the corpus and its original train/test split. Headers, footers, and quotes are removed to reduce metadata shortcuts. The corpus is historical and English-only; forum classification results do not establish quality on modern support tickets. Review dataset terms before redistributing source messages. Raw data is not included in this repository.
+
+## Quick start
+
+Install Python 3.11 or 3.12 first (3.12 recommended). From the repository root:
+
+```powershell
+py -3.12 -m venv .venv
+.venv\Scripts\python -m pip install -e ".[dev]"
+.venv\Scripts\python -m pytest -q
+.venv\Scripts\python -m terrymok.train
+```
+
+On Linux/macOS:
+
+```bash
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -e '.[dev]'
+.venv/bin/python -m pytest -q
+.venv/bin/python -m terrymok.train
+```
+
+Installation requires internet. Tests use tiny synthetic fixtures and do not download datasets. The training command downloads the corpus into `data/`, evaluates once on the original test split, and writes `artifacts/model.joblib` and `reports/metrics.json`. These generated directories are ignored by Git. Run commands from the repository root.
+
+## Evaluation
+
+The pipeline fits TF-IDF on training messages only. Logistic regression uses a fixed seed of 42 and is compared with a majority-class DummyClassifier. Reports contain accuracy, macro-F1, per-class precision/recall/F1, sample counts, categories, and Python/scikit-learn versions.
+
+The initial baseline has no hyperparameter search. Future tuning must use a validation split inside train, leaving test untouched. Dependency ranges are declared in `pyproject.toml`; a fully locked environment and duplicate audit are still pending.
+
+## Layout
+
+```text
+src/terrymok/model.py    Text preprocessing and classifier
+src/terrymok/train.py    Dataset download, training, evaluation, export
+tests/test_model.py     Offline behavior and serialization tests
+.github/workflows/      Tests on Python 3.11 and 3.12
+```
+
+GitHub Actions runs tests on pushes and pull requests; it also supports manual runs. CI installs dependencies but does not download the training corpus.
+
+## Next milestones
+
+- Run and document the first reproducible benchmark, inspect duplicates and classification errors.
+- Add a validation protocol, experiment comparison, and a model card with measured limitations.
+- Add an inference CLI, FastAPI service, container, and latency benchmark.
+- Evaluate a confidence threshold for human review using validation data.
+
+Only load trusted local joblib artifacts: deserializing an untrusted model can execute code. No production readiness or achieved quality is claimed at this stage.

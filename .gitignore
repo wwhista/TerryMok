@@ -1,0 +1,19 @@
+# Local agent context — never publish
+/AGENTS.md
+/ROADMAP.md
+/PROGRESS.md
+
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+.env
+.env.*
+!.env.example
+/data/
+/artifacts/
+/reports/

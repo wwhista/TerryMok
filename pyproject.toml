@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=69,<83"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "terrymok"
+version = "0.1.0"
+description = "Reproducible technical message classification baseline"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+dependencies = ["scikit-learn>=1.5,<2", "joblib>=1.4,<2"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
