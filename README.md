@@ -2,7 +2,7 @@
 
 Reproducible classification of English technical messages with TF-IDF and logistic regression. An ML engineering portfolio project covering data separation, baseline evaluation, offline tests, and CI.
 
-**Status:** initial implementation. Training and tests have not yet been executed in the development environment. No benchmark results are claimed.
+**Status:** initial implementation. Three offline tests pass locally on Python 3.12 and in CI on Python 3.11/3.12. Full corpus training has not yet been run; no benchmark results are claimed.
 
 ## Problem and data
 
