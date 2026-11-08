@@ -11,6 +11,7 @@ from sklearn.dummy import DummyClassifier
 from sklearn.metrics import accuracy_score, classification_report, f1_score
 
 from terrymok.model import build_pipeline
+from terrymok.prepare import prepare_splits
 
 CATEGORIES = [
     "comp.graphics", "comp.os.ms-windows.misc",
@@ -25,6 +26,9 @@ def main() -> None:
     )
     train = fetch_20newsgroups(subset="train", **options)
     test = fetch_20newsgroups(subset="test", **options)
+    splits, preparation = prepare_splits(train.data, train.target, test.data, test.target)
+    train.data, train.target = map(list, zip(*splits["train"]))
+    test.data, test.target = map(list, zip(*splits["test"]))
     model = build_pipeline()
     model.fit(train.data, train.target)
     predictions = model.predict(test.data)
@@ -33,6 +37,7 @@ def main() -> None:
     baseline_predictions = baseline.predict([[0]] * len(test.data))
     report = {
         "dataset": "20newsgroups", "categories": train.target_names,
+        "preparation": preparation,
         "remove": list(options["remove"]), "random_state": 42,
         "python_version": platform.python_version(),
         "sklearn_version": sklearn.__version__,

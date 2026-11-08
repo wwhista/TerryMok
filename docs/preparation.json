@@ -1,0 +1,35 @@
+{
+  "policy": "v1: remove blanks, remove all conflicting groups within each split, keep first duplicate; remove test overlap with original train; stratified 80/20 train split",
+  "random_state": 42,
+  "train_cleaning": {
+    "input_rows": 2343,
+    "empty_rows_removed": 68,
+    "conflicting_rows_removed": 4,
+    "duplicate_rows_removed": 6
+  },
+  "test_cleaning": {
+    "input_rows": 1560,
+    "empty_rows_removed": 40,
+    "conflicting_rows_removed": 0,
+    "duplicate_rows_removed": 1,
+    "overlap_rows_removed": 3
+  },
+  "sizes": {
+    "train": 1812,
+    "validation": 453,
+    "test": 1516
+  },
+  "overlap": {
+    "train_validation": 0,
+    "train_test": 0,
+    "validation_test": 0
+  },
+  "python_version": "3.12.0",
+  "sklearn_version": "1.9.1",
+  "categories": [
+    "comp.graphics",
+    "comp.os.ms-windows.misc",
+    "comp.sys.ibm.pc.hardware",
+    "comp.sys.mac.hardware"
+  ]
+}
