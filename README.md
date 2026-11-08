@@ -36,6 +36,15 @@ Installation requires internet. Tests use tiny synthetic fixtures and do not dow
 
 Before training, run `.venv\Scripts\python -m terrymok.audit` (Linux/macOS: `.venv/bin/python -m terrymok.audit`). This separate network-enabled command downloads the same four-category corpus and writes aggregate counts to `reports/data_audit.json`. It counts empty messages, duplicate extra rows within each split, and cross-split overlap after Unicode case folding and whitespace normalization. Empty messages do not count as overlap. No raw text or message hashes are exported. The audit is diagnostic: it does not modify either split, detect near-duplicates, check conflicting labels, or remove leakage automatically. Resolve a cleaning protocol before treating future test metrics as a benchmark.
 
+The [first audit snapshot](docs/data-audit.json), run on November 8, 2026, found:
+
+| Split | Rows | Empty messages | Duplicate extra rows |
+| --- | ---: | ---: | ---: |
+| Train | 2,343 | 68 | 8 |
+| Test | 1,560 | 40 | 1 |
+
+Three distinct nonempty normalized messages appear in both splits, covering three training rows and four test rows. This is a data-quality finding, not a model score. Cleaning and validation separation are the next steps; the current training entry point still uses the original uncleaned splits.
+
 The pipeline fits TF-IDF on training messages only. Logistic regression uses a fixed seed of 42 and is compared with a majority-class DummyClassifier. Reports contain accuracy, macro-F1, per-class precision/recall/F1, sample counts, categories, and Python/scikit-learn versions.
 
 The initial baseline has no hyperparameter search. Future tuning must use a validation split inside train, leaving test untouched. Dependency ranges are declared in `pyproject.toml`; a fully locked environment and a validated cleaning protocol are still pending.

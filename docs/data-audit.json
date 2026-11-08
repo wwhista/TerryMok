@@ -1,0 +1,37 @@
+{
+  "dataset": "20newsgroups",
+  "categories": [
+    "comp.graphics",
+    "comp.os.ms-windows.misc",
+    "comp.sys.ibm.pc.hardware",
+    "comp.sys.mac.hardware"
+  ],
+  "remove": [
+    "headers",
+    "footers",
+    "quotes"
+  ],
+  "audit": {
+    "normalization": "Unicode casefold and collapsed whitespace; SHA-256",
+    "train": {
+      "rows": 2343,
+      "empty_rows": 68,
+      "unique_nonempty_messages": 2267,
+      "duplicate_extra_rows": 8
+    },
+    "test": {
+      "rows": 1560,
+      "empty_rows": 40,
+      "unique_nonempty_messages": 1519,
+      "duplicate_extra_rows": 1
+    },
+    "overlap_unique_messages": 3,
+    "overlap_train_rows": 3,
+    "overlap_test_rows": 4
+  },
+  "run_date": "2026-11-08",
+  "random_state": 42,
+  "python_version": "3.12.0",
+  "sklearn_version": "1.9.1",
+  "source_commit": "8fc7b8e1e6c7036f095b678a2adc5404c47ea0c6"
+}
