@@ -2,7 +2,7 @@
 
 Reproducible classification of English technical messages with TF-IDF and logistic regression. An ML engineering portfolio project covering data separation, baseline evaluation, offline tests, and CI.
 
-**Status:** initial implementation. Three offline tests pass locally on Python 3.12 and in CI on Python 3.11/3.12. Full corpus training has not yet been run; no benchmark results are claimed.
+**Status:** initial implementation with offline tests and CI on Python 3.11/3.12. Full corpus training has not yet been run; no benchmark results are claimed.
 
 ## Problem and data
 
@@ -34,14 +34,17 @@ Installation requires internet. Tests use tiny synthetic fixtures and do not dow
 
 ## Evaluation
 
+Before training, run `.venv\Scripts\python -m terrymok.audit` (Linux/macOS: `.venv/bin/python -m terrymok.audit`). This separate network-enabled command downloads the same four-category corpus and writes aggregate counts to `reports/data_audit.json`. It counts empty messages, duplicate extra rows within each split, and cross-split overlap after Unicode case folding and whitespace normalization. Empty messages do not count as overlap. No raw text or message hashes are exported. The audit is diagnostic: it does not modify either split, detect near-duplicates, check conflicting labels, or remove leakage automatically. Resolve a cleaning protocol before treating future test metrics as a benchmark.
+
 The pipeline fits TF-IDF on training messages only. Logistic regression uses a fixed seed of 42 and is compared with a majority-class DummyClassifier. Reports contain accuracy, macro-F1, per-class precision/recall/F1, sample counts, categories, and Python/scikit-learn versions.
 
-The initial baseline has no hyperparameter search. Future tuning must use a validation split inside train, leaving test untouched. Dependency ranges are declared in `pyproject.toml`; a fully locked environment and duplicate audit are still pending.
+The initial baseline has no hyperparameter search. Future tuning must use a validation split inside train, leaving test untouched. Dependency ranges are declared in `pyproject.toml`; a fully locked environment and a validated cleaning protocol are still pending.
 
 ## Layout
 
 ```text
 src/terrymok/model.py    Text preprocessing and classifier
+src/terrymok/audit.py    Aggregate duplicate and split-overlap diagnostics
 src/terrymok/train.py    Dataset download, training, evaluation, export
 tests/test_model.py     Offline behavior and serialization tests
 .github/workflows/      Tests on Python 3.11 and 3.12
