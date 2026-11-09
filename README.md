@@ -2,7 +2,7 @@
 
 Reproducible classification of English technical messages with TF-IDF and logistic regression. An ML engineering portfolio project covering data separation, baseline evaluation, offline tests, and CI.
 
-**Status:** initial implementation with offline tests and CI on Python 3.11/3.12. Data preparation is implemented and tested; model selection and benchmark analysis are still pending.
+**Status:** initial implementation with offline tests and CI on Python 3.11/3.12. Data preparation is implemented and tested; validation model selection is implemented; final selected-model evaluation and error analysis are pending.
 
 ## Problem and data
 
@@ -47,7 +47,7 @@ Three distinct nonempty normalized messages appear in both splits, covering thre
 
 The pipeline fits TF-IDF on training messages only. Logistic regression uses a fixed seed of 42 and is compared with a majority-class DummyClassifier. Reports contain accuracy, macro-F1, per-class precision/recall/F1, sample counts, categories, and Python/scikit-learn versions.
 
-The initial baseline has no hyperparameter search. Future tuning must use a validation split inside train, leaving test untouched. Dependency ranges are declared in `pyproject.toml`; a fully locked environment and hyperparameter selection are still pending.
+The initial baseline has no hyperparameter search. Future tuning must use a validation split inside train, leaving test untouched. Dependency ranges are declared in `pyproject.toml`; a fully locked environment is still pending; validation selection is available through the separate experiment command.
 
 ## Layout
 
@@ -80,3 +80,14 @@ Within each original split, remove blank messages, remove every row in groups wi
 The prepared corpus has 1,812 train, 453 validation, and 1,516 test messages, with zero normalized exact overlap between all pairs. Four conflicting training rows were removed. Near-duplicates are not detected. Removing ambiguous and repeated test examples changes the evaluation population, so future results must be labelled as a cleaned-corpus benchmark and cannot be directly compared with raw 20 Newsgroups scores.
 
 The first fixed-model integration run on the cleaned test set achieved accuracy 0.7243 and macro-F1 0.7238; the majority-class baseline macro-F1 was 0.1011. See [full metrics](docs/baseline-metrics.json). These are initial results from one split, with no hyperparameter search or uncertainty estimate. Future model choices must use validation rather than these test results.
+
+## Validation experiments
+
+Run `python -m terrymok.prepare` followed by `python -m terrymok.experiment` in the project environment. The experiment command loads only the trusted, locally generated `data/prepared.joblib`. It compares a majority baseline, word TF-IDF (1–2 grams) with logistic regression at C=0.5/1/2, word TF-IDF with linear SVM at C=1, and character-within-word TF-IDF (3–5 grams) with linear SVM at C=1. All TF-IDF variants use sublinear term frequency. Estimators use seed 42.
+
+Selection maximizes macro-F1 on the 453-message validation set; exact ties preserve the declared candidate order. Each candidate fits only on the 1,812 training messages, including its vocabulary. The experiment does not evaluate test data or refit on validation. The earlier fixed-baseline test evaluation remains a separate result.
+
+Outputs are `reports/experiments.json` and `artifacts/selected-model.joblib`. The report includes per-class validation metrics, environment versions, fit time, one batch prediction time, and selected artifact size. Timings are single local observations, not a production latency benchmark. The selected model remains a candidate pending final evaluation, error analysis, and a model card. Validation selection can overfit this one split; a higher validation score alone does not establish improvement on unseen data.
+
+
+The [November 9 validation run](docs/validation-experiments.json) selected character TF-IDF + LinearSVC (C=1): macro-F1 **0.8048**, versus **0.7893** for word TF-IDF + LinearSVC and **0.7697** for the original word logistic regression (C=1), all on the same validation split. These scores must not be compared directly with the earlier test score of 0.7238.
