@@ -1,0 +1,83 @@
+{
+  "test_size": 1516,
+  "labels": [
+    "comp.graphics",
+    "comp.os.ms-windows.misc",
+    "comp.sys.ibm.pc.hardware",
+    "comp.sys.mac.hardware"
+  ],
+  "accuracy": 0.7579155672823219,
+  "macro_f1": 0.7567310435330499,
+  "confusion_matrix_rows_true_columns_predicted": [
+    [
+      325,
+      20,
+      16,
+      22
+    ],
+    [
+      53,
+      263,
+      43,
+      19
+    ],
+    [
+      24,
+      40,
+      267,
+      53
+    ],
+    [
+      16,
+      18,
+      43,
+      294
+    ]
+  ],
+  "classification_report": {
+    "comp.graphics": {
+      "precision": 0.777511961722488,
+      "recall": 0.8485639686684073,
+      "f1-score": 0.8114856429463171,
+      "support": 383.0
+    },
+    "comp.os.ms-windows.misc": {
+      "precision": 0.7712609970674487,
+      "recall": 0.6957671957671958,
+      "f1-score": 0.7315716272600834,
+      "support": 378.0
+    },
+    "comp.sys.ibm.pc.hardware": {
+      "precision": 0.7235772357723578,
+      "recall": 0.6953125,
+      "f1-score": 0.7091633466135459,
+      "support": 384.0
+    },
+    "comp.sys.mac.hardware": {
+      "precision": 0.7577319587628866,
+      "recall": 0.7924528301886793,
+      "f1-score": 0.7747035573122529,
+      "support": 371.0
+    },
+    "accuracy": 0.7579155672823219,
+    "macro avg": {
+      "precision": 0.7575205383312953,
+      "recall": 0.7580241236560705,
+      "f1-score": 0.7567310435330499,
+      "support": 1516.0
+    },
+    "weighted avg": {
+      "precision": 0.757451156641705,
+      "recall": 0.7579155672823219,
+      "f1-score": 0.7566403833873341,
+      "support": 1516.0
+    }
+  },
+  "error_count": 367,
+  "candidate": "char_wb_svm_C1.0",
+  "protocol": "Frozen train-only model selected by validation macro-F1; no refit or test-based tuning",
+  "python_version": "3.12.0",
+  "sklearn_version": "1.9.1",
+  "model_sha256": "341fd8ce5777e236fa856d34077d023ce8f0c6eaffd54c4fe0b892e6ab9ca811",
+  "prepared_data_sha256": "7be15010eceae9850020be4e81811ebbcce9ddcfc2d2976c92b48d898a3cd76d"
+}
