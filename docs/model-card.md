@@ -23,7 +23,9 @@ The majority baseline test macro-F1 was 0.1011. The selected model improves macr
 
 ## Aggregate error analysis
 
-There were 367 mistakes. The largest directed confusions were Windows to graphics (53) and IBM hardware to Mac hardware (53). The reverse Mac-to-IBM confusion contributed 43 more mistakes. IBM hardware had the lowest class F1 (0.7092), while graphics had the highest (0.8115). These counts establish where mistakes occur, not why; semantic explanations require inspecting examples. Manual review of at least 20 errors remains pending.
+There were 367 mistakes. The largest directed confusions were Windows to graphics (53) and IBM hardware to Mac hardware (53). The reverse Mac-to-IBM confusion contributed 43 more mistakes. IBM hardware had the lowest class F1 (0.7092), while graphics had the highest (0.8115). These counts establish where mistakes occur, not why.
+
+A [direct qualitative review of 20 sampled errors](error-review.md) found cross-topic messages, missing context, platform-unspecific hardware discussion, and missed explicit cues. Punctuation-only content and residual headers, quotes and contact metadata also survived preprocessing. Review annotations are agent interpretations, not independent human labels or feature attribution. No model changes were made from this test review; future changes influenced by it need independent holdout evaluation.
 
 ## Reproduction and artifacts
 

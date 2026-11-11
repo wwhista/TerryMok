@@ -2,7 +2,7 @@
 
 Reproducible classification of English technical messages with TF-IDF and logistic regression. An ML engineering portfolio project covering data separation, baseline evaluation, offline tests, and CI.
 
-**Status:** initial implementation with offline tests and CI on Python 3.11/3.12. Data preparation is implemented and tested; validation model selection is implemented; the selected model has been evaluated on test; manual error review is pending.
+**Status:** initial implementation with offline tests and CI on Python 3.11/3.12. Data preparation is implemented and tested; validation model selection is implemented; the selected model has been evaluated on test; a qualitative review of 20 errors is documented.
 
 ## Problem and data
 
@@ -87,7 +87,7 @@ Run `python -m terrymok.prepare` followed by `python -m terrymok.experiment` in 
 
 Selection maximizes macro-F1 on the 453-message validation set; exact ties preserve the declared candidate order. Each candidate fits only on the 1,812 training messages, including its vocabulary. The experiment does not evaluate test data or refit on validation. The earlier fixed-baseline test evaluation remains a separate result.
 
-Outputs are `reports/experiments.json` and `artifacts/selected-model.joblib`. The report includes per-class validation metrics, environment versions, fit time, one batch prediction time, and selected artifact size. Timings are single local observations, not a production latency benchmark. The selected model has a separate frozen-model test evaluation and model card; manual error review remains pending. Validation selection can overfit this one split; a higher validation score alone does not establish improvement on unseen data.
+Outputs are `reports/experiments.json` and `artifacts/selected-model.joblib`. The report includes per-class validation metrics, environment versions, fit time, one batch prediction time, and selected artifact size. Timings are single local observations, not a production latency benchmark. The selected model has a separate frozen-model test evaluation and model card; a qualitative review of 20 sampled errors is available in docs/error-review.md. Validation selection can overfit this one split; a higher validation score alone does not establish improvement on unseen data.
 
 
 The [November 9 validation run](docs/validation-experiments.json) selected character TF-IDF + LinearSVC (C=1): macro-F1 **0.8048**, versus **0.7893** for word TF-IDF + LinearSVC and **0.7697** for the original word logistic regression (C=1), all on the same validation split. These scores must not be compared directly with the earlier test score of 0.7238.
