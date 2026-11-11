@@ -16,7 +16,7 @@ Install Python 3.11 or 3.12 first (3.12 recommended). From the repository root:
 
 ```powershell
 py -3.12 -m venv .venv
-.venv\Scripts\python -m pip install -e ".[dev]"
+.venv\Scripts\python -m pip install -e ".[dev,api]"
 .venv\Scripts\python -m pytest -q
 .venv\Scripts\python -m terrymok.train
 ```
@@ -25,7 +25,7 @@ On Linux/macOS:
 
 ```bash
 python3.12 -m venv .venv
-.venv/bin/python -m pip install -e '.[dev]'
+.venv/bin/python -m pip install -e '.[dev,api]'
 .venv/bin/python -m pytest -q
 .venv/bin/python -m terrymok.train
 ```
@@ -98,3 +98,21 @@ The [November 9 validation run](docs/validation-experiments.json) selected chara
 After prepare and experiment, run `python -m terrymok.evaluate`. This command predicts with the selected local artifact without fitting or selecting parameters. It checks class mappings and the selected candidate name, then saves aggregate metrics, a confusion matrix, and artifact digests to `reports/selected-test-metrics.json`.
 
 The selected character SVM achieved test accuracy **0.7579** and macro-F1 **0.7567** on 1,516 cleaned messages, compared with **0.7238** macro-F1 for the fixed logistic-regression baseline on the same test set. There were 367 mistakes. See the [model card](docs/model-card.md) for protocol, aggregate error analysis, limitations and reproduction, and the [complete test report](docs/selected-test-metrics.json). These results must not be used to tune parameters on test.
+
+## Inference API
+
+Install `python -m pip install -e '.[dev,api]'`. Generate the trusted model with prepare and experiment first, then start from the repository root:
+
+```bash
+python -m uvicorn terrymok.api:create_app --factory --host 127.0.0.1 --port 8000
+```
+
+Open `http://127.0.0.1:8000/docs` for interactive OpenAPI documentation. `GET /health` reports readiness, class labels and the loaded model SHA-256. `POST /predict` accepts JSON:
+
+```json
+{"texts": ["My graphics card driver crashes in Windows", "How do I upgrade memory on my Mac?"]}
+```
+
+The response contains `model_sha256` and an ordered `predictions` list, each with `label_id` and `label`. No calibrated confidence is claimed. One request accepts 1–32 nonblank strings, up to 10,000 characters each; invalid input returns HTTP 422. Unknown fields and non-string values are rejected. The service loads the model once per process at startup using FastAPI lifespan. Missing models and inconsistent class mappings fail startup rather than serving a misleading healthy response.
+
+Set `TERRYMOK_MODEL_PATH` to select another trusted local artifact. SHA-256 identifies the loaded file, not its trustworthiness. The service does not persist request bodies. This is a local demo with no authentication, rate limiting, or reverse-proxy body-size limit. It has not been load-tested or publicly deployed; request schema limits apply after JSON parsing. Containerization, observability and p50/p95 benchmarks are the next service milestones.
