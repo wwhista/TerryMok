@@ -1,0 +1,21 @@
+{
+  "requests": 200,
+  "successes": 200,
+  "failures": 0,
+  "elapsed_seconds": 0.4531144000357017,
+  "successful_requests_per_second": 441.3896357834614,
+  "success_latency_ms": {
+    "p50": 7.9798001097515225,
+    "p95": 20.749200019054115,
+    "p99": 27.692300034686923
+  },
+  "concurrency": 4,
+  "warmup_requests": 5,
+  "batch_size": 1,
+  "model_sha256": "341fd8ce5777e236fa856d34077d023ce8f0c6eaffd54c4fe0b892e6ab9ca811",
+  "python_version": "3.12.0",
+  "platform": "Windows",
+  "machine": "AMD64",
+  "workload": "four fixed synthetic English messages; cyclic order",
+  "methodology": "closed-loop threads; fresh urllib HTTP connection per request; nearest-rank percentiles of successful end-to-end requests; warmup excluded"
+}
