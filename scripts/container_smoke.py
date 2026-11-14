@@ -2,6 +2,7 @@
 
 import argparse
 import hashlib
+from http.client import HTTPException
 import json
 import subprocess
 import tempfile
@@ -31,6 +32,7 @@ def check(image):
 
     with tempfile.TemporaryDirectory() as temp:
         models = Path(temp).resolve()
+        models.chmod(0o755)  # Permit the non-root API to traverse the fixture mount.
         script_dir = Path(__file__).resolve().parent
         docker("run", "--rm", "--user", "0", "-v", f"{models}:/models",
                "-v", f"{script_dir}:/smoke:ro", "--entrypoint", "python", image,
@@ -46,7 +48,7 @@ def check(image):
                     with urlopen(base + "/health", timeout=2) as response:
                         health = json.load(response)
                     break
-                except (URLError, TimeoutError):
+                except (URLError, OSError, HTTPException):
                     time.sleep(1)
             else:
                 raise RuntimeError("Container did not become ready")
