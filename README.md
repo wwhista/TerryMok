@@ -124,3 +124,24 @@ Start the API in one terminal, then run `python -m terrymok.benchmark --port 800
 The command saves `reports/api-benchmark.json` and exits nonzero on measured failures. Only HTTP 200 responses with the expected model digest and one recognized label count as successes. Percentiles use nearest rank over successes; failures are counted separately, so always read both. A failed health check or warmup aborts the run.
 
 The [November 13 local snapshot](docs/api-benchmark.json) recorded 200/200 successful requests, p50 **7.98 ms**, p95 **20.75 ms**, p99 **27.69 ms**, and approximately **441 successful requests/s**, using four client threads and one Uvicorn process on Windows/Python 3.12. The measured phase lasted only **0.45 seconds**. This is a short smoke benchmark on one machine, not a sustained capacity, saturation or production SLA claim. The client and server share the host; the workload uses short repeated messages, no public network, no authentication and no proxy. Longer texts, batches, contention and deployment hardware can change results substantially. Docker and sustained multi-load benchmarking remain pending.
+
+## Docker deployment
+
+Build with `docker build -t terrymok:local .`. The image contains application code and dependencies only. The allowlisted build context excludes models, datasets, local agent documents, Git history and environment files. The API runs as UID 10001 and has a Docker health check.
+
+Generate the model with prepare/experiment first, then mount the trusted artifact read-only. In PowerShell:
+
+```powershell
+$modelDir = (Resolve-Path artifacts).Path
+docker run --rm -p 127.0.0.1:8000:8000 --mount "type=bind,source=$modelDir,target=/models,readonly" terrymok:local
+```
+
+On Linux/macOS:
+
+```bash
+docker run --rm -p 127.0.0.1:8000:8000 --mount "type=bind,source=$(pwd)/artifacts,target=/models,readonly" terrymok:local
+```
+
+The default model path is `/models/selected-model.joblib`; use `-e TERRYMOK_MODEL_PATH=/models/your-model.joblib` for another trusted artifact. Model files must be readable by UID 10001. Preserve the training library versions when deploying serialized scikit-learn models. Dependency ranges and the Python base-image tag are not locked yet, so rebuilding is not guaranteed to reproduce the exact training environment.
+
+CI builds the image and runs `python3 scripts/container_smoke.py`. The check creates a tiny synthetic model inside the same image, starts the API with a read-only model mount and dynamically assigned loopback port, verifies non-root execution, health, model identity, ordered predictions and HTTP 422, and removes its temporary container. It does not download the real corpus or publish an image. Run `docker build -t terrymok:smoke .` before invoking this check locally. This tests container wiring, not the real model's Linux compatibility or deployment capacity. The development machine currently has no running Docker engine; container validation is performed by GitHub Actions.
