@@ -2,6 +2,7 @@
 !Dockerfile
 !pyproject.toml
 !README.md
+!requirements-runtime.lock
 !src/
 !src/terrymok/
 !src/terrymok/*.py

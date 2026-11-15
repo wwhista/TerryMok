@@ -3,8 +3,10 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 \
     TERRYMOK_MODEL_PATH=/models/selected-model.joblib
 WORKDIR /app
 COPY pyproject.toml README.md ./
+COPY requirements-runtime.lock ./
 COPY src ./src
-RUN python -m pip install --no-cache-dir '.[api]' \
+RUN python -m pip install --no-cache-dir --require-hashes --only-binary=:all: -r requirements-runtime.lock \
+    && python -m pip install --no-cache-dir --no-deps '.[api]' \
     && useradd --create-home --uid 10001 appuser
 USER 10001
 EXPOSE 8000

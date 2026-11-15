@@ -16,7 +16,8 @@ Install Python 3.11 or 3.12 first (3.12 recommended). From the repository root:
 
 ```powershell
 py -3.12 -m venv .venv
-.venv\Scripts\python -m pip install -e ".[dev,api]"
+.venv\Scripts\python -m pip install --require-hashes --only-binary=:all: -r requirements-dev.lock
+.venv\Scripts\python -m pip install --no-deps -e ".[dev,api]"
 .venv\Scripts\python -m pytest -q
 .venv\Scripts\python -m terrymok.train
 ```
@@ -25,7 +26,8 @@ On Linux/macOS:
 
 ```bash
 python3.12 -m venv .venv
-.venv/bin/python -m pip install -e '.[dev,api]'
+.venv/bin/python -m pip install --require-hashes --only-binary=:all: -r requirements-dev.lock
+.venv/bin/python -m pip install --no-deps -e '.[dev,api]'
 .venv/bin/python -m pytest -q
 .venv/bin/python -m terrymok.train
 ```
@@ -47,7 +49,7 @@ Three distinct nonempty normalized messages appear in both splits, covering thre
 
 The pipeline fits TF-IDF on training messages only. Logistic regression uses a fixed seed of 42 and is compared with a majority-class DummyClassifier. Reports contain accuracy, macro-F1, per-class precision/recall/F1, sample counts, categories, and Python/scikit-learn versions.
 
-The initial baseline has no hyperparameter search. Future tuning must use a validation split inside train, leaving test untouched. Dependency ranges are declared in `pyproject.toml`; a fully locked environment is still pending; validation selection is available through the separate experiment command.
+The initial baseline has no hyperparameter search. Future tuning must use a validation split inside train, leaving test untouched. Dependency ranges are declared in `pyproject.toml`; runtime and test dependencies now have hash-checked locks; validation selection is available through the separate experiment command.
 
 ## Layout
 
@@ -142,6 +144,19 @@ On Linux/macOS:
 docker run --rm -p 127.0.0.1:8000:8000 --mount "type=bind,source=$(pwd)/artifacts,target=/models,readonly" terrymok:local
 ```
 
-The default model path is `/models/selected-model.joblib`; use `-e TERRYMOK_MODEL_PATH=/models/your-model.joblib` for another trusted artifact. Model files must be readable by UID 10001. Preserve the training library versions when deploying serialized scikit-learn models. Dependency ranges and the Python base-image tag are not locked yet, so rebuilding is not guaranteed to reproduce the exact training environment.
+The default model path is `/models/selected-model.joblib`; use `-e TERRYMOK_MODEL_PATH=/models/your-model.joblib` for another trusted artifact. Model files must be readable by UID 10001. Preserve the training library versions when deploying serialized scikit-learn models. Runtime dependencies are installed from requirements-runtime.lock with hash verification. The Python base-image tag and isolated setuptools build environment are not pinned by digest or lock, so complete image reproducibility is still pending.
 
 CI builds the image and runs `python3 scripts/container_smoke.py`. The check creates a tiny synthetic model inside the same image, starts the API with a read-only model mount and dynamically assigned loopback port, verifies non-root execution, health, model identity, ordered predictions and HTTP 422, and removes its temporary container. It does not download the real corpus or publish an image. Run `docker build -t terrymok:smoke .` before invoking this check locally. This tests container wiring, not the real model's Linux compatibility or deployment capacity. The development machine currently has no running Docker engine; container validation is performed by GitHub Actions.
+
+## Dependency locks
+
+`requirements-runtime.lock` pins the full API/ML dependency graph; `requirements-dev.lock` includes tests and is constrained by the runtime lock. Both include distribution hashes and environment markers for Python 3.11/3.12 and Windows/Linux. CI installs the dev lock in fresh runners; Docker installs the runtime lock, then the local project with `--no-deps`. Use the hash-checked Quick start above for development. Installing directly from pyproject extras without the lock still resolves floating versions.
+
+Regenerate deliberately with uv 0.13.8 (see the [uv locking documentation](https://docs.astral.sh/uv/pip/compile/)):
+
+```bash
+uv pip compile pyproject.toml --extra api --universal --python-version 3.11 --generate-hashes -o requirements-runtime.lock
+uv pip compile pyproject.toml --extra api --extra dev --universal --python-version 3.11 --generate-hashes -c requirements-runtime.lock -o requirements-dev.lock
+```
+
+Existing pins are preserved unless explicitly upgraded. After dependency edits, regenerate both locks, review the diff, run tests and the container smoke check. For a clean local reproduction use a new virtual environment: pip install does not remove unrelated packages already present. Python 3.11 has older NumPy/SciPy pins than 3.12; serialized models should use their training Python/library versions, not just any supported test environment. The original Python 3.12 model's scikit-learn 1.9.1, NumPy 2.5.4, SciPy 1.18.1 and joblib 1.6.0 remain pinned. FastAPI moves from the locally tested 0.162.4 to 0.163.1. Image digest pinning, build-tool pinning and real-model Linux transfer remain separate work.
