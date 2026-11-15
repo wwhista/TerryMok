@@ -1,0 +1,119 @@
+{
+  "release": {
+    "candidate": "char_wb_svm_C1.0",
+    "validation_macro_f1": 0.8047973068459411,
+    "python": "3.12.16",
+    "sklearn": "1.9.1",
+    "platform": "Linux",
+    "sizes": {
+      "train": 1812,
+      "validation": 453,
+      "test": 1516
+    },
+    "artifact_bytes": 46556754,
+    "model_sha256": "341fd8ce5777e236fa856d34077d023ce8f0c6eaffd54c4fe0b892e6ab9ca811",
+    "expected_labels": [
+      "comp.sys.mac.hardware",
+      "comp.graphics"
+    ]
+  },
+  "profiles": [
+    {
+      "requests": 33042,
+      "successes": 33042,
+      "failures": 0,
+      "elapsed_seconds": 60.001146500000004,
+      "successful_requests_per_second": 550.6894772419057,
+      "success_latency_ms": {
+        "p50": 1.7667939999910232,
+        "p95": 1.9710589999704098,
+        "p99": 2.075367000031747
+      },
+      "concurrency": 1,
+      "warmup_requests": 5,
+      "batch_size": 1,
+      "requested_duration_seconds": 60,
+      "text_repeat": 1,
+      "model_sha256": "341fd8ce5777e236fa856d34077d023ce8f0c6eaffd54c4fe0b892e6ab9ca811",
+      "python_version": "3.14.4",
+      "platform": "Linux",
+      "machine": "x86_64",
+      "workload": "four fixed synthetic English messages; cyclic order",
+      "methodology": "closed-loop threads; fresh urllib HTTP connection per request; nearest-rank percentiles of successful end-to-end requests; warmup excluded"
+    },
+    {
+      "requests": 37096,
+      "successes": 37096,
+      "failures": 0,
+      "elapsed_seconds": 60.006486112000005,
+      "successful_requests_per_second": 618.1998381101939,
+      "success_latency_ms": {
+        "p50": 6.188808999979756,
+        "p95": 8.230046999983642,
+        "p99": 9.23003799999833
+      },
+      "concurrency": 4,
+      "warmup_requests": 5,
+      "batch_size": 1,
+      "requested_duration_seconds": 60,
+      "text_repeat": 1,
+      "model_sha256": "341fd8ce5777e236fa856d34077d023ce8f0c6eaffd54c4fe0b892e6ab9ca811",
+      "python_version": "3.14.4",
+      "platform": "Linux",
+      "machine": "x86_64",
+      "workload": "four fixed synthetic English messages; cyclic order",
+      "methodology": "closed-loop threads; fresh urllib HTTP connection per request; nearest-rank percentiles of successful end-to-end requests; warmup excluded"
+    },
+    {
+      "requests": 21978,
+      "successes": 21978,
+      "failures": 0,
+      "elapsed_seconds": 60.010245171000065,
+      "successful_requests_per_second": 366.2374639092603,
+      "success_latency_ms": {
+        "p50": 10.74073000000908,
+        "p95": 12.70513800000117,
+        "p99": 14.253080000003138
+      },
+      "concurrency": 4,
+      "warmup_requests": 5,
+      "batch_size": 8,
+      "requested_duration_seconds": 60,
+      "text_repeat": 10,
+      "model_sha256": "341fd8ce5777e236fa856d34077d023ce8f0c6eaffd54c4fe0b892e6ab9ca811",
+      "python_version": "3.14.4",
+      "platform": "Linux",
+      "machine": "x86_64",
+      "workload": "four fixed synthetic English messages; cyclic order",
+      "methodology": "closed-loop threads; fresh urllib HTTP connection per request; nearest-rank percentiles of successful end-to-end requests; warmup excluded"
+    }
+  ],
+  "server_metrics": {
+    "model_sha256": "341fd8ce5777e236fa856d34077d023ce8f0c6eaffd54c4fe0b892e6ab9ca811",
+    "scope": "process; /predict only",
+    "uptime_seconds": 182.560207102,
+    "in_flight": 0,
+    "completed": 92133,
+    "status_classes": {
+      "2xx": 92132,
+      "3xx": 0,
+      "4xx": 1,
+      "5xx": 0
+    },
+    "duration_seconds_sum": 386.36888933099516,
+    "duration_buckets_cumulative": {
+      "0.005": 65948,
+      "0.01": 89752,
+      "0.025": 92032,
+      "0.05": 92133,
+      "0.1": 92133,
+      "0.25": 92133,
+      "1.0": 92133
+    },
+    "duration_count": 92133
+  },
+  "container_user": 10001,
+  "model_mount": "read-only",
+  "run_url": "https://github.com/wwhista/TerryMok/actions/runs/43710016964",
+  "source_commit": "3d8a4b83d5f6111e9d94fbd34d30a2d9eb62ba96"
+}
