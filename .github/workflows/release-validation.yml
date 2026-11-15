@@ -1,0 +1,21 @@
+name: Real model release validation
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: Build locked image
+        run: docker build -t terrymok:smoke .
+      - name: Reproduce selected real model in Linux
+        run: |
+          mkdir -p "$RUNNER_TEMP/release"
+          docker run --rm --user 0 --mount "type=bind,source=$RUNNER_TEMP/release,target=/models" --mount "type=bind,source=$PWD/scripts,target=/smoke,readonly" terrymok:smoke python /smoke/train_release.py
+      - name: Validate real model and run sustained profiles
+        run: python3 scripts/container_smoke.py --model-dir "$RUNNER_TEMP/release" --benchmark

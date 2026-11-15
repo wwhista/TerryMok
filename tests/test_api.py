@@ -58,3 +58,20 @@ def test_environment_path_and_single_startup_load(artifact, monkeypatch):
         for _ in range(2):
             assert client.post("/predict", json={"texts": ["graphics pixels"]}).status_code == 200
         assert client.get("/health").status_code == 200
+
+
+def test_metrics_count_success_validation_and_server_error(artifact):
+    app = create_app(artifact)
+    with TestClient(app, raise_server_exceptions=False) as client:
+        client.post("/predict", json={"texts": ["graphics pixels"]})
+        client.post("/predict", json={"texts": [""]})
+        class BrokenModel:
+            def predict(self, texts):
+                raise RuntimeError("synthetic failure")
+        app.state.model = BrokenModel()
+        assert client.post("/predict", json={"texts": ["hardware"]}).status_code == 500
+        metrics = client.get("/metrics").json()
+        assert metrics["completed"] == 3
+        assert metrics["status_classes"] == {"2xx": 1, "3xx": 0, "4xx": 1, "5xx": 1}
+        assert metrics["in_flight"] == 0
+        assert client.get("/metrics").json()["completed"] == 3

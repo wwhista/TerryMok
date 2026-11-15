@@ -45,3 +45,26 @@ def test_mismatched_model_and_network_error_are_counted(monkeypatch):
     report = run_benchmark(requests=3, concurrency=1, warmup=0)
     assert report["successes"] == 1
     assert report["failures"] == 2
+
+
+def test_timed_batch_workload(monkeypatch):
+    import io
+    import json
+    from terrymok import benchmark
+
+    class Response(io.StringIO):
+        status = 200
+
+    def respond(request, **kwargs):
+        if isinstance(request, str):
+            return Response(json.dumps({"model_sha256": "expected", "labels": ["graphics"]}))
+        texts = json.loads(request.data)["texts"]
+        assert len(texts) == 2
+        assert all(len(text) > 50 for text in texts)
+        return Response(json.dumps({"model_sha256": "expected", "predictions": [{"label": "graphics"}] * 2}))
+
+    monkeypatch.setattr(benchmark, "urlopen", respond)
+    report = run_benchmark(duration=0.02, concurrency=1, warmup=0, batch_size=2, text_repeat=3)
+    assert report["requests"] > 0
+    assert report["failures"] == 0
+    assert report["elapsed_seconds"] >= 0.02

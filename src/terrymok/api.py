@@ -3,6 +3,7 @@
 import hashlib
 import io
 import os
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated
@@ -10,6 +11,7 @@ from typing import Annotated
 import joblib
 from fastapi import FastAPI
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
+from terrymok.monitoring import Metrics
 
 Text = Annotated[str, StringConstraints(strict=True, strip_whitespace=True, min_length=1, max_length=10000)]
 
@@ -48,6 +50,26 @@ def create_app(model_path=None):
         yield
 
     app = FastAPI(title="TerryMok inference", version="0.1.0", lifespan=lifespan)
+    metrics = Metrics()
+
+    @app.middleware("http")
+    async def measure(request, call_next):
+        if request.url.path != "/predict":
+            return await call_next(request)
+        metrics.begin()
+        started = time.perf_counter()
+        status = 500
+        try:
+            response = await call_next(request)
+            status = response.status_code
+            return response
+        finally:
+            metrics.finish(status, time.perf_counter() - started)
+
+    @app.get("/metrics")
+    def operational_metrics():
+        return {"model_sha256": app.state.digest, "scope": "process; /predict only",
+                **metrics.snapshot()}
 
     @app.get("/health")
     def health():
