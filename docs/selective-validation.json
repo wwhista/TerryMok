@@ -1,0 +1,36 @@
+{
+  "validation_size": 453,
+  "target_accuracy": 0.9,
+  "min_accepted": 30,
+  "score": "largest minus second-largest decision score",
+  "rule": "gap >= threshold; null threshold means review all",
+  "selected": {
+    "threshold": 0.2626990940686912,
+    "accepted": 351,
+    "review": 102,
+    "coverage": 0.7748344370860927,
+    "errors": 35,
+    "accuracy": 0.9002849002849003
+  },
+  "test_evaluated": false,
+  "model_sha256": "341fd8ce5777e236fa856d34077d023ce8f0c6eaffd54c4fe0b892e6ab9ca811",
+  "prepared_data_sha256": "7be15010eceae9850020be4e81811ebbcce9ddcfc2d2976c92b48d898a3cd76d",
+  "candidate": "char_wb_svm_C1.0",
+  "labels": [
+    "comp.graphics",
+    "comp.os.ms-windows.misc",
+    "comp.sys.ibm.pc.hardware",
+    "comp.sys.mac.hardware"
+  ],
+  "python_version": "3.12.0",
+  "sklearn_version": "1.9.1",
+  "limitation": "Selection-set accuracy, not an independent estimate or guarantee; scores are not probabilities",
+  "unfiltered": {
+    "threshold": 9.904833521764966E-05,
+    "accepted": 453,
+    "review": 0,
+    "coverage": 1.0,
+    "errors": 88,
+    "accuracy": 0.8057395143487859
+  }
+}

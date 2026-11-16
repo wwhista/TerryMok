@@ -170,3 +170,29 @@ For timed load use `python -m terrymok.benchmark --duration 60 --concurrency 4 -
 See the [demonstration and resume guide](docs/demo.md). The manually triggered **Real model release validation** workflow rebuilds the fixed selected model from real 20 Newsgroups data in Linux, mounts it read-only in a separate API container, then executes three 60-second profiles: (concurrency 1, batch 1, repeat 1), (4, 1, 1), and (4, 8, 10). It checks HTTP results, artifact identity and server counter consistency. Only aggregate results are printed; source data and model files are ephemeral on the runner and are not uploaded. It does not tune on test or re-evaluate test scores, and it does not prove transfer of the existing Windows artifact.
 
 The [completed Linux release validation](docs/release-validation.md) reproduced the original model SHA-256 and validation score, then served **92,116 measured requests without errors** over three 60-second profiles. At concurrency 4, p95 was **8.23 ms** for single short texts and **12.71 ms** for batches of eight repeated longer texts. These are single-run localhost CI measurements, not production guarantees. The [aggregate report](docs/release-validation.json) includes model identity and monitoring-counter reconciliation.
+
+## Validation-only selective routing
+
+Run `python -m terrymok.selective --target-accuracy 0.9 --min-accepted 30`
+with the trusted local model and prepared data. This freezes the existing model
+and reads only validation rows. It searches the gap between the two largest
+multiclass decision scores, accepting `gap >= threshold`. These scores are not
+probabilities. Equal gaps stay together. The lowest feasible threshold maximizes
+coverage subject to the requested empirical accuracy and minimum accepted count.
+If none qualifies, a null threshold means review everything; accuracy is then null.
+
+The [November 16 aggregate snapshot](docs/selective-validation.json) selected a
+gap of 0.262699: 351/453 messages accepted (77.48% coverage), 35 accepted errors,
+90.03% accepted accuracy, and 102 messages for review. The full threshold curve
+is generated locally in `reports/selective-validation.json`; no raw text is exported.
+The report binds results to model/data digests and records library versions.
+
+This is an offline policy experiment; `/predict` still returns every prediction
+and no human queue exists yet. Validation was already used for model selection,
+so this additional tuning produces an optimistic selection-set estimate, not an
+independent quality guarantee. The minimum count is a support constraint, not a
+statistical confidence bound. Test data is not scored or used to choose the policy.
+Before claiming deployment quality, freeze the policy and assess it on a new
+independent holdout. Historical English forum messages do not establish ticket
+routing accuracy. Next: opt-in API review flags with model-digest checks and
+per-class coverage analysis.
