@@ -2,6 +2,8 @@
 
 import hashlib
 import io
+import json
+import math
 import os
 import time
 from contextlib import asynccontextmanager
@@ -9,6 +11,7 @@ from pathlib import Path
 from typing import Annotated
 
 import joblib
+import numpy as np
 from fastapi import FastAPI
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from terrymok.monitoring import Metrics
@@ -24,15 +27,30 @@ class PredictRequest(BaseModel):
 class Prediction(BaseModel):
     label_id: int
     label: str
+    review_required: bool | None = None
+    score_gap: float | None = None
 
 
 class PredictResponse(BaseModel):
     model_sha256: str
     predictions: list[Prediction]
+    policy_sha256: str | None = None
 
 
-def create_app(model_path=None):
+def routing_scores(model, texts, class_count):
+    scores = np.asarray(model.decision_function(texts), dtype=float)
+    if scores.shape != (len(texts), class_count) or not np.isfinite(scores).all():
+        raise ValueError("Policy requires finite multiclass decision scores")
+    ordered = np.sort(scores, axis=1)
+    gaps = ordered[:, -1] - ordered[:, -2]
+    if not np.isfinite(gaps).all():
+        raise ValueError("Nonfinite score gaps")
+    return scores.argmax(axis=1), gaps
+
+
+def create_app(model_path=None, policy_path=None):
     path = Path(model_path or os.environ.get("TERRYMOK_MODEL_PATH", "artifacts/selected-model.joblib"))
+    policy_source = policy_path or os.environ.get("TERRYMOK_POLICY_PATH")
 
     @asynccontextmanager
     async def lifespan(app):
@@ -47,6 +65,21 @@ def create_app(model_path=None):
         app.state.model = model
         app.state.labels = labels
         app.state.digest = hashlib.sha256(model_bytes).hexdigest()
+        app.state.policy_digest = None
+        if policy_source:
+            policy_bytes = Path(policy_source).read_bytes()
+            policy = json.loads(policy_bytes)
+            threshold = policy["selected"]["threshold"]
+            if (policy["model_sha256"] != app.state.digest or policy["labels"] != labels
+                    or policy["score"] != "largest minus second-largest decision score"
+                    or policy["rule"] != "gap >= threshold; null threshold means review all"
+                    or len(labels) < 3
+                    or (threshold is not None and (type(threshold) not in (int, float)
+                        or not math.isfinite(threshold) or threshold < 0))):
+                raise ValueError("Policy does not match model or threshold contract")
+            routing_scores(model, ["startup probe"], len(labels))
+            app.state.threshold = threshold
+            app.state.policy_digest = hashlib.sha256(policy_bytes).hexdigest()
         yield
 
     app = FastAPI(title="TerryMok inference", version="0.1.0", lifespan=lifespan)
@@ -73,11 +106,23 @@ def create_app(model_path=None):
 
     @app.get("/health")
     def health():
-        return {"status": "ready", "model_sha256": app.state.digest,
-                "labels": app.state.labels}
+        result = {"status": "ready", "model_sha256": app.state.digest,
+                  "labels": app.state.labels}
+        if app.state.policy_digest:
+            result["policy_sha256"] = app.state.policy_digest
+        return result
 
-    @app.post("/predict", response_model=PredictResponse)
+    @app.post("/predict", response_model=PredictResponse, response_model_exclude_none=True)
     def predict(request: PredictRequest):
+        if app.state.policy_digest:
+            ids, gaps = routing_scores(app.state.model, request.texts, len(app.state.labels))
+            threshold = app.state.threshold
+            return {"model_sha256": app.state.digest, "policy_sha256": app.state.policy_digest,
+                    "predictions": [
+                        {"label_id": int(value), "label": app.state.labels[int(value)],
+                         "score_gap": float(gap),
+                         "review_required": threshold is None or bool(gap < threshold)}
+                        for value, gap in zip(ids, gaps)]}
         ids = app.state.model.predict(request.texts)
         return {"model_sha256": app.state.digest, "predictions": [
             {"label_id": int(value), "label": app.state.labels[int(value)]} for value in ids

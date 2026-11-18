@@ -187,8 +187,7 @@ gap of 0.262699: 351/453 messages accepted (77.48% coverage), 35 accepted errors
 is generated locally in `reports/selective-validation.json`; no raw text is exported.
 The report binds results to model/data digests and records library versions.
 
-This is an offline policy experiment; `/predict` still returns every prediction
-and no human queue exists yet. Validation was already used for model selection,
+The policy can now be enabled in the API as described below; no human queue exists yet. Validation was already used for model selection,
 so this additional tuning produces an optimistic selection-set estimate, not an
 independent quality guarantee. The minimum count is a support constraint, not a
 statistical confidence bound. Test data is not scored or used to choose the policy.
@@ -196,3 +195,27 @@ Before claiming deployment quality, freeze the policy and assess it on a new
 independent holdout. Historical English forum messages do not establish ticket
 routing accuracy. Next: opt-in API review flags with model-digest checks and
 per-class coverage analysis.
+
+## Opt-in review flags in the API
+
+Generate the policy with `python -m terrymok.selective`, then set
+`TERRYMOK_POLICY_PATH` before starting Uvicorn. In PowerShell:
+
+```powershell
+$env:TERRYMOK_POLICY_PATH = "reports/selective-validation.json"
+python -m uvicorn terrymok.api:create_app --factory --host 127.0.0.1 --port 8000
+```
+
+On Linux use `TERRYMOK_POLICY_PATH=reports/selective-validation.json python -m uvicorn terrymok.api:create_app --factory`.
+For Docker, mount the policy file read-only and set the variable to its container path.
+Startup checks the model SHA-256, ordered labels, score definition, threshold rule
+and multiclass score shape. Missing or incompatible policies fail startup.
+The policy is loaded once; restart to change it. SHA-256 identifies content, not trust.
+
+With a policy enabled, `/predict` adds `review_required` and `score_gap` to each
+prediction and `policy_sha256` to the response; `/health` also reports policy identity.
+A gap equal to the threshold is accepted; a null threshold marks every result for
+review. Scores are not probabilities. Invalid runtime scores return an error.
+Without the environment variable, the existing response format remains unchanged.
+The label is still a suggestion when review is required: the caller must handle
+that flag. This does not create a human queue, store texts, or guarantee accuracy.
