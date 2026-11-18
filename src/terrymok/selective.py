@@ -43,10 +43,26 @@ def select_threshold(scores, targets, target_accuracy=0.9, min_accepted=30):
     selected = feasible[0] if feasible else {
         "threshold": None, "accepted": 0, "review": len(scores),
         "coverage": 0.0, "errors": 0, "accuracy": None}
+    accepted = np.zeros(len(scores), dtype=bool) if selected["threshold"] is None else gaps >= selected["threshold"]
+    predictions = scores.argmax(axis=1)
+    per_class = []
+    for class_id in range(scores.shape[1]):
+        actual = targets == class_id
+        kept = actual & accepted
+        routed = (predictions == class_id) & accepted
+        support, count, routed_count = int(actual.sum()), int(kept.sum()), int(routed.sum())
+        errors = int((kept & ~correct).sum())
+        per_class.append({"class_id": class_id, "support": support,
+                          "accepted": count, "review": support - count,
+                          "coverage": count / support if support else None,
+                          "accepted_errors": errors,
+                          "accepted_accuracy": 1 - errors / count if count else None,
+                          "predicted_accepted": routed_count,
+                          "accepted_precision": float((routed & correct).sum()) / routed_count if routed_count else None})
     return {"validation_size": len(scores), "target_accuracy": target_accuracy,
             "min_accepted": min_accepted, "score": "largest minus second-largest decision score",
             "rule": "gap >= threshold; null threshold means review all",
-            "selected": selected, "curve": curve, "test_evaluated": False}
+            "selected": selected, "curve": curve, "per_class": per_class, "test_evaluated": False}
 
 
 def main():

@@ -12,6 +12,52 @@
     "errors": 35,
     "accuracy": 0.9002849002849003
   },
+  "per_class": [
+    {
+      "class_id": 0,
+      "support": 114,
+      "accepted": 84,
+      "review": 30,
+      "coverage": 0.7368421052631579,
+      "accepted_errors": 4,
+      "accepted_accuracy": 0.9523809523809523,
+      "predicted_accepted": 93,
+      "accepted_precision": 0.8602150537634409
+    },
+    {
+      "class_id": 1,
+      "support": 112,
+      "accepted": 93,
+      "review": 19,
+      "coverage": 0.8303571428571429,
+      "accepted_errors": 7,
+      "accepted_accuracy": 0.9247311827956989,
+      "predicted_accepted": 92,
+      "accepted_precision": 0.9347826086956522
+    },
+    {
+      "class_id": 2,
+      "support": 116,
+      "accepted": 93,
+      "review": 23,
+      "coverage": 0.8017241379310345,
+      "accepted_errors": 13,
+      "accepted_accuracy": 0.8602150537634409,
+      "predicted_accepted": 86,
+      "accepted_precision": 0.9302325581395349
+    },
+    {
+      "class_id": 3,
+      "support": 111,
+      "accepted": 81,
+      "review": 30,
+      "coverage": 0.7297297297297297,
+      "accepted_errors": 11,
+      "accepted_accuracy": 0.8641975308641976,
+      "predicted_accepted": 80,
+      "accepted_precision": 0.875
+    }
+  ],
   "test_evaluated": false,
   "model_sha256": "341fd8ce5777e236fa856d34077d023ce8f0c6eaffd54c4fe0b892e6ab9ca811",
   "prepared_data_sha256": "7be15010eceae9850020be4e81811ebbcce9ddcfc2d2976c92b48d898a3cd76d",
@@ -24,13 +70,5 @@
   ],
   "python_version": "3.12.0",
   "sklearn_version": "1.9.1",
-  "limitation": "Selection-set accuracy, not an independent estimate or guarantee; scores are not probabilities",
-  "unfiltered": {
-    "threshold": 9.904833521764966E-05,
-    "accepted": 453,
-    "review": 0,
-    "coverage": 1.0,
-    "errors": 88,
-    "accuracy": 0.8057395143487859
-  }
+  "limitation": "Selection-set accuracy, not an independent estimate or guarantee; scores are not probabilities"
 }

@@ -219,3 +219,26 @@ review. Scores are not probabilities. Invalid runtime scores return an error.
 Without the environment variable, the existing response format remains unchanged.
 The label is still a suggestion when review is required: the caller must handle
 that flag. This does not create a human queue, store texts, or guarantee accuracy.
+
+## Category-level selective diagnostics
+
+`python -m terrymok.selective` now includes `per_class` in the validation report.
+`support`, `accepted`, `review`, `coverage`, `accepted_errors` and
+`accepted_accuracy` group messages by their **true** class. `predicted_accepted`
+and `accepted_precision` instead group accepted messages by their **predicted**
+destination. Empty denominators are null, not perfect scores.
+
+The November 18 run kept the same threshold and overall 351 accepted / 102 review:
+
+| True category | Total | Accepted | Review | Accepted errors |
+| --- | ---: | ---: | ---: | ---: |
+| Graphics | 114 | 84 | 30 | 4 |
+| Windows | 112 | 93 | 19 | 7 |
+| PC hardware | 116 | 93 | 23 | 13 |
+| Mac hardware | 111 | 81 | 30 | 11 |
+
+Thus the 90.03% aggregate accepted accuracy does not imply 90% in every category:
+PC hardware reaches 86.02% and Mac hardware 86.42% on this validation selection set.
+See the updated aggregate report in docs/selective-validation.json for route precision.
+These are descriptive diagnostics of the selected threshold, not independent quality
+estimates; no threshold retuning or test evaluation was performed.

@@ -26,6 +26,28 @@ def test_all_correct_accepts_everything_including_zero_gap():
     assert report["selected"]["coverage"] == 1
 
 
+def test_class_breakdown_distinguishes_true_class_quality_from_route_precision():
+    report = select_threshold([[3, 0, 0], [0, 2, 0], [0, 0, 2], [1, 0, 0]],
+                              [0, 1, 1, 1], 0.5, 1)
+    rows = report["per_class"]
+    assert sum(r["support"] for r in rows) == 4
+    assert sum(r["accepted_errors"] for r in rows) == report["selected"]["errors"]
+    assert rows[0]["accepted_accuracy"] == 1
+    assert rows[0]["accepted_precision"] == 0.5
+    assert rows[1]["accepted_accuracy"] == pytest.approx(1 / 3)
+    assert rows[1]["accepted_precision"] == 1
+    assert rows[2]["coverage"] is None
+    assert rows[2]["accepted_accuracy"] is None
+    assert rows[2]["accepted_precision"] == 0
+
+
+def test_class_breakdown_for_review_all():
+    rows = select_threshold([[2, 0, 0]], [0], 1, 2)["per_class"]
+    assert rows[0]["review"] == 1
+    assert rows[0]["coverage"] == 0
+    assert all(r["accepted_accuracy"] is None and r["accepted_precision"] is None for r in rows)
+
+
 @pytest.mark.parametrize("scores,targets", [([], []), ([[1, 0]], [0]),
     ([[1, 0, np.nan]], [0]), ([[1, 0, np.inf]], [0]),
     ([[1, 0, 0]], [3]), ([[1, 0, 0]], []), ([[1, 0, 0]], [[0]])])
