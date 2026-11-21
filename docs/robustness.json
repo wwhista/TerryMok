@@ -1,0 +1,42 @@
+{
+  "model_sha256": "341fd8ce5777e236fa856d34077d023ce8f0c6eaffd54c4fe0b892e6ab9ca811",
+  "policy_sha256": "ea51fc96e4e95a56110997fcbe9b56744b32ea0b3fe3e78cb46420a01c2f6184",
+  "prepared_data_sha256": "7be15010eceae9850020be4e81811ebbcce9ddcfc2d2976c92b48d898a3cd76d",
+  "threshold": 0.2626990940686912,
+  "test_evaluated": false,
+  "profiles": {
+    "original": {
+      "size": 453,
+      "changed_texts": 0,
+      "accuracy": 0.8057395143487859,
+      "accepted": 351,
+      "review": 102,
+      "coverage": 0.7748344370860927,
+      "accepted_errors": 35,
+      "accepted_accuracy": 0.9002849002849003,
+      "prediction_changes": 0
+    },
+    "typos": {
+      "size": 453,
+      "changed_texts": 442,
+      "accuracy": 0.8101545253863135,
+      "accepted": 343,
+      "review": 110,
+      "coverage": 0.7571743929359823,
+      "accepted_errors": 39,
+      "accepted_accuracy": 0.8862973760932945,
+      "prediction_changes": 25
+    },
+    "first_20_words": {
+      "size": 453,
+      "changed_texts": 447,
+      "accuracy": 0.7064017660044151,
+      "accepted": 315,
+      "review": 138,
+      "coverage": 0.695364238410596,
+      "accepted_errors": 56,
+      "accepted_accuracy": 0.8222222222222222,
+      "prediction_changes": 99
+    }
+  }
+}

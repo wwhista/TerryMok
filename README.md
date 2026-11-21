@@ -242,3 +242,26 @@ PC hardware reaches 86.02% and Mac hardware 86.42% on this validation selection 
 See the updated aggregate report in docs/selective-validation.json for route precision.
 These are descriptive diagnostics of the selected threshold, not independent quality
 estimates; no threshold retuning or test evaluation was performed.
+
+## Fixed-policy robustness checks
+
+Run `python -m terrymok.robustness` after generating the selective policy. It checks
+model/data identities and evaluates validation only, without fitting or selecting
+thresholds. Profiles are unchanged text, swapping letters two and three in every
+fifth ASCII word of at least four letters, and keeping the first 20 whitespace-separated
+words. The counter resets per message; there is no randomness. Truncation also
+normalizes whitespace and may remove information needed to infer the original label.
+
+The November 21 [aggregate report](docs/robustness.json) records:
+
+| Profile | Accepted | Review | Accepted errors | Accepted accuracy |
+| --- | ---: | ---: | ---: | ---: |
+| Original | 351 | 102 | 35 | 90.03% |
+| Synthetic typos | 343 | 110 | 39 | 88.63% |
+| First 20 words | 315 | 138 | 56 | 82.22% |
+
+All profiles contain the same 453 validation messages and use the same frozen
+threshold. Prediction changes are 25 for typos and 99 for truncation. More reviews
+do not preserve the original accepted accuracy. These deterministic synthetic
+stress checks are not independent evaluation, realistic typo-frequency estimates,
+or a production drift detector. No test examples or raw messages are exported.
