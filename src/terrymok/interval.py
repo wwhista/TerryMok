@@ -38,9 +38,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('before', type=Path)
     parser.add_argument('after', type=Path)
+    parser.add_argument('--review-limit', type=float)
+    parser.add_argument('--short-limit', type=float)
+    parser.add_argument('--min-messages', type=int, default=100)
     args = parser.parse_args()
+    if (args.review_limit is None) != (args.short_limit is None):
+        parser.error('Provide both --review-limit and --short-limit')
     result = interval(json.loads(args.before.read_text(encoding='utf-8-sig')),
                       json.loads(args.after.read_text(encoding='utf-8-sig')))
+    if args.review_limit is not None:
+        from terrymok.alerts import warnings_for
+        result['alerts'] = warnings_for(result, args.review_limit, args.short_limit, args.min_messages)
     print(json.dumps(result, indent=2, allow_nan=False))
 
 

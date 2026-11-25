@@ -298,3 +298,20 @@ instance, model or policy, decreasing counters, or non-increasing uptime returns
 Missing identities or malformed counters fail rather than producing estimates.
 Do not combine different workers behind a load balancer. This CLI reads saved
 snapshots; it does not poll, persist traffic, send alerts or measure model accuracy.
+
+## Explicit interval warnings
+
+Use `python -m terrymok.interval before.json after.json --review-limit 0.4 --short-limit 0.7 --min-messages 100`
+to add an `alerts` object. Both limits must be supplied and must be fractions in
+[0, 1]. A warning occurs only when the interval fraction strictly exceeds its
+limit. Review checks require at least `min-messages` policy-evaluated messages;
+short-text checks require that many total messages. Insufficient samples are
+reported per check; restarts or identity changes produce `not_evaluated`.
+
+The example limits are illustrative operator choices, not calibrated statistical
+thresholds. The offline synthetic test feeds 100 long accepted messages followed
+by 100 short review-marked messages: only the second interval triggers both
+warnings. It also checks exact boundaries, inadequate sample counts and restarts.
+These flags are printed locally; they do not send notifications, establish drift,
+measure accuracy, or replace a persistent external monitoring system. Warning
+results retain exit code zero; consumers must inspect the JSON warnings list.
