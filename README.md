@@ -284,3 +284,17 @@ differences between scrapes for interval statistics, handle resets, and group by
 model and policy identity. Multiple workers need separate collection.
 These signals help inspect traffic changes; they do not measure accuracy or
 establish drift. Automatic alert thresholds and an external collector remain pending.
+
+## Comparing monitoring snapshots
+
+Save two `/metrics` JSON responses from the same worker and run
+`python -m terrymok.interval before.json after.json`. The command reports counter
+differences, messages per second, mean characters, short-message fraction and
+review fraction for that interval. Empty denominators produce null. Use UTF-8 JSON.
+
+Metrics now include a random `instance_id` per application instance. A different
+instance, model or policy, decreasing counters, or non-increasing uptime returns
+`status: baseline_required`; retain the newer snapshot as the next baseline.
+Missing identities or malformed counters fail rather than producing estimates.
+Do not combine different workers behind a load balancer. This CLI reads saved
+snapshots; it does not poll, persist traffic, send alerts or measure model accuracy.

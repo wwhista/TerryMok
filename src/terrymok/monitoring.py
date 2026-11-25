@@ -2,6 +2,7 @@
 
 import threading
 import time
+import uuid
 
 
 class Metrics:
@@ -9,6 +10,7 @@ class Metrics:
 
     def __init__(self):
         self.lock = threading.Lock()
+        self.instance_id = uuid.uuid4().hex
         self.started = time.monotonic()
         self.active = 0
         self.completed = 0
@@ -50,7 +52,7 @@ class Metrics:
 
     def snapshot(self):
         with self.lock:
-            return {"uptime_seconds": time.monotonic() - self.started,
+            return {"instance_id": self.instance_id, "uptime_seconds": time.monotonic() - self.started,
                     "in_flight": self.active, "completed": self.completed,
                     "status_classes": dict(self.statuses),
                     "duration_seconds_sum": self.duration_sum,
