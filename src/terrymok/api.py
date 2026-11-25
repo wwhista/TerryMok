@@ -102,6 +102,7 @@ def create_app(model_path=None, policy_path=None):
     @app.get("/metrics")
     def operational_metrics():
         return {"model_sha256": app.state.digest, "scope": "process; /predict only",
+                "policy_sha256": app.state.policy_digest,
                 **metrics.snapshot()}
 
     @app.get("/health")
@@ -117,15 +118,19 @@ def create_app(model_path=None, policy_path=None):
         if app.state.policy_digest:
             ids, gaps = routing_scores(app.state.model, request.texts, len(app.state.labels))
             threshold = app.state.threshold
-            return {"model_sha256": app.state.digest, "policy_sha256": app.state.policy_digest,
+            result = {"model_sha256": app.state.digest, "policy_sha256": app.state.policy_digest,
                     "predictions": [
                         {"label_id": int(value), "label": app.state.labels[int(value)],
                          "score_gap": float(gap),
                          "review_required": threshold is None or bool(gap < threshold)}
                         for value, gap in zip(ids, gaps)]}
+            metrics.observe_predictions(request.texts, [p["review_required"] for p in result["predictions"]])
+            return result
         ids = app.state.model.predict(request.texts)
-        return {"model_sha256": app.state.digest, "predictions": [
+        result = {"model_sha256": app.state.digest, "predictions": [
             {"label_id": int(value), "label": app.state.labels[int(value)]} for value in ids
         ]}
+        metrics.observe_predictions(request.texts)
+        return result
 
     return app

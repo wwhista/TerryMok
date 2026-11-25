@@ -96,3 +96,16 @@ def test_binary_score_shape_rejected():
 
     with pytest.raises(ValueError, match="multiclass"):
         routing_scores(BinaryModel(), ["example"], 3)
+
+
+def test_prediction_metrics_count_messages_not_requests(files):
+    with TestClient(create_app(*files), raise_server_exceptions=False) as client:
+        assert client.get('/metrics').json()['predictions']['review_fraction'] is None
+        client.post('/predict', json={'texts': ['accept', 'review', 'tie']})
+        client.post('/predict', json={'texts': ['invalid']})
+        client.post('/predict', json={'texts': ['']})
+        result = client.get('/metrics').json()
+        assert result['policy_sha256'] == client.get('/health').json()['policy_sha256']
+        assert result['predictions'] == {'messages': 3, 'characters_sum': 15,
+            'short_messages_le_20_words': 3, 'policy_messages': 3,
+            'review_messages': 2, 'review_fraction': 2 / 3}

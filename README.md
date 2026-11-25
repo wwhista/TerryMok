@@ -265,3 +265,22 @@ threshold. Prediction changes are 25 for typos and 99 for truncation. More revie
 do not preserve the original accepted accuracy. These deterministic synthetic
 stress checks are not independent evaluation, realistic typo-frequency estimates,
 or a production drift detector. No test examples or raw messages are exported.
+
+## Prediction telemetry
+
+`GET /metrics` now includes `policy_sha256` (null when disabled) and a `predictions`
+object. `messages` counts messages after successful inference, not HTTP requests;
+`characters_sum` counts Python string characters after API whitespace stripping,
+and `short_messages_le_20_words` counts texts with at most 20 whitespace-separated
+words. `policy_messages` counts only messages evaluated with a review policy;
+`review_messages` counts their review flags and `review_fraction` is their ratio
+(null before any policy predictions). No text or per-message history is retained.
+
+Counters are atomic, per process and reset with a new application instance. Failed
+inference and invalid input are excluded; HTTP counters still track those failures.
+Prediction completion is measured before response transmission, so these counters
+are not proof of client delivery. Scraping does not increase them. Use counter
+differences between scrapes for interval statistics, handle resets, and group by
+model and policy identity. Multiple workers need separate collection.
+These signals help inspect traffic changes; they do not measure accuracy or
+establish drift. Automatic alert thresholds and an external collector remain pending.

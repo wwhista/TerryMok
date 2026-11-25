@@ -15,6 +15,25 @@ class Metrics:
         self.statuses = {"2xx": 0, "3xx": 0, "4xx": 0, "5xx": 0}
         self.duration_sum = 0.0
         self.buckets = [0] * len(self.bounds)
+        self.messages = 0
+        self.characters = 0
+        self.short_messages = 0
+        self.policy_messages = 0
+        self.review_messages = 0
+
+    def observe_predictions(self, texts, review_flags=None):
+        count = len(texts)
+        characters = sum(len(text) for text in texts)
+        short = sum(len(text.split()) <= 20 for text in texts)
+        if review_flags is not None and len(review_flags) != count:
+            raise ValueError("Review flags must match messages")
+        with self.lock:
+            self.messages += count
+            self.characters += characters
+            self.short_messages += short
+            if review_flags is not None:
+                self.policy_messages += count
+                self.review_messages += sum(review_flags)
 
     def begin(self):
         with self.lock:
@@ -36,4 +55,10 @@ class Metrics:
                     "status_classes": dict(self.statuses),
                     "duration_seconds_sum": self.duration_sum,
                     "duration_buckets_cumulative": dict(zip(map(str, self.bounds), self.buckets)),
-                    "duration_count": self.completed}
+                    "duration_count": self.completed,
+                    "predictions": {"messages": self.messages,
+                        "characters_sum": self.characters,
+                        "short_messages_le_20_words": self.short_messages,
+                        "policy_messages": self.policy_messages,
+                        "review_messages": self.review_messages,
+                        "review_fraction": self.review_messages / self.policy_messages if self.policy_messages else None}}
