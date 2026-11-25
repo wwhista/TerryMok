@@ -315,3 +315,28 @@ warnings. It also checks exact boundaries, inadequate sample counts and restarts
 These flags are printed locally; they do not send notifications, establish drift,
 measure accuracy, or replace a persistent external monitoring system. Warning
 results retain exit code zero; consumers must inspect the JSON warnings list.
+
+## Local polling collector
+
+Start the API, then run:
+
+```bash
+python -m terrymok.collector --review-limit 0.4 --short-limit 0.7 --samples 10 --seconds 5 --min-messages 100 --consecutive 3
+```
+
+The collector polls `http://127.0.0.1:8000/metrics` (override port with `--port`)
+and emits one JSON line per sample to stdout. The first sample establishes a
+baseline; ten samples permit nine evaluated intervals. Poll spacing is a delay
+after each fetch, not a fixed-rate schedule. HTTP timeout is five seconds.
+Runs are bounded to 2..10000 samples with 0.1..60 seconds between samples.
+
+Each signal becomes active after the configured consecutive eligible intervals
+above its limit. Normal values, inadequate support and identity/reset changes
+break the streak. Fetch or malformed-snapshot errors emit `collection_error`,
+discard baseline and streaks, then retry at the next sample. Error output contains
+only exception type. The next successful sample establishes a new baseline.
+Active warnings repeat while the condition persists; they are level indicators,
+not deduplicated notifications. All state is in memory and resets on collector
+restart. For local persistence redirect stdout into the ignored `reports/` directory.
+No external messages are sent. There is no daemon installation, dashboard or
+accuracy guarantee; limits remain operator choices. Use a single API worker.
