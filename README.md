@@ -340,3 +340,18 @@ not deduplicated notifications. All state is in memory and resets on collector
 restart. For local persistence redirect stdout into the ignored `reports/` directory.
 No external messages are sent. There is no daemon installation, dashboard or
 accuracy guarantee; limits remain operator choices. Use a single API worker.
+
+## HTTP monitoring integration check
+
+Run `python -m pytest tests/test_collector_http.py -q`. This offline test starts a
+real Uvicorn server on a reserved loopback socket, creates a trusted synthetic
+three-class scoring fixture and matching policy, and sends four batches of two
+messages over HTTP. The collector polls real `/metrics` responses: baseline,
+normal traffic, two short/review intervals (both warnings activate), then normal
+traffic (warnings clear). Final counters must show eight messages, four reviews
+and four prediction requests. The server is shut down in a finally block.
+
+This validates HTTP wiring and monitoring behavior, not model quality or the
+collector CLI subprocess. Polling uses a nonzero delay to avoid identical monotonic
+clock readings on Windows. No corpus download, persistent server or raw data export
+is required. The check runs in the existing Python 3.11/3.12 CI test matrix.
