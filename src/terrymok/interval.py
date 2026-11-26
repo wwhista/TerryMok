@@ -1,13 +1,42 @@
 """Compare two aggregate /metrics snapshots from one application instance."""
 import argparse
 import json
+import math
 from pathlib import Path
 
 FIELDS = ('messages', 'characters_sum', 'short_messages_le_20_words',
           'policy_messages', 'review_messages')
 
 
+def validate_snapshot(snapshot):
+    if not isinstance(snapshot, dict):
+        raise ValueError('Snapshot must be an object')
+    for key in ('instance_id', 'model_sha256', 'policy_sha256'):
+        if key not in snapshot:
+            raise ValueError('Missing snapshot identity')
+        value = snapshot[key]
+        if key == 'policy_sha256' and value is None:
+            continue
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError('Snapshot identities must be nonempty strings')
+    uptime = snapshot.get('uptime_seconds')
+    if type(uptime) not in (int, float) or not math.isfinite(uptime) or uptime < 0:
+        raise ValueError('Uptime must be finite and nonnegative')
+    counts = snapshot.get('predictions')
+    if not isinstance(counts, dict):
+        raise ValueError('Missing prediction counters')
+    for field in FIELDS:
+        if type(counts.get(field)) is not int or counts[field] < 0:
+            raise ValueError('Counters must be nonnegative integers')
+    if not counts['review_messages'] <= counts['policy_messages'] <= counts['messages'] or counts['short_messages_le_20_words'] > counts['messages']:
+        raise ValueError('Inconsistent snapshot counters')
+    if snapshot['policy_sha256'] is None and counts['policy_messages']:
+        raise ValueError('Policy counters require policy identity')
+
+
 def interval(before, after):
+    validate_snapshot(before)
+    validate_snapshot(after)
     for key in ('instance_id', 'model_sha256', 'policy_sha256'):
         if key not in before or key not in after:
             raise ValueError('Missing snapshot identity')

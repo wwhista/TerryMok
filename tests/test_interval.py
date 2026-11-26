@@ -41,3 +41,23 @@ def test_reset_and_invalid_counters():
     a['predictions']['messages'] = -1
     with pytest.raises(ValueError):
         interval(a, b)
+
+
+@pytest.mark.parametrize('key,value', [('uptime_seconds', float('nan')),
+    ('uptime_seconds', float('inf')), ('uptime_seconds', -1), ('uptime_seconds', True),
+    ('instance_id', None), ('model_sha256', ''), ('policy_sha256', 12),
+    ('predictions', None)])
+def test_bad_snapshot_rejected_even_after_identity_change(key, value):
+    a, b = snapshots()
+    b['instance_id'] = 'replacement'
+    b[key] = value
+    with pytest.raises(ValueError):
+        interval(a, b)
+
+
+def test_inconsistent_totals_cannot_hide_behind_valid_deltas():
+    a, b = snapshots()
+    for s in (a, b):
+        s['predictions']['review_messages'] += 100
+    with pytest.raises(ValueError):
+        interval(a, b)

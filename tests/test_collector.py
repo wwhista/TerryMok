@@ -42,3 +42,14 @@ def test_insufficient_samples_break_streak():
         m.observe_predictions(['short'] * count, [True] * count)
         result = c.observe(dict(m.snapshot(), uptime_seconds=t, model_sha256='m', policy_sha256='p'))
         assert result['active_warnings'] == []
+
+
+def test_malformed_first_sample_is_not_retained():
+    m = Metrics()
+    good = dict(m.snapshot(), uptime_seconds=1, model_sha256='m', policy_sha256=None)
+    bad = dict(good, uptime_seconds=float('nan'))
+    stream = iter([bad, good])
+    c = Collector(.4, .7)
+    result = list(poll(c, lambda: next(stream), 2, 0, sleep=lambda _: None))
+    assert [r['status'] for r in result] == ['collection_error', 'baseline']
+    assert c.previous == good

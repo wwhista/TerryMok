@@ -4,7 +4,7 @@ import json
 import time
 from urllib.request import urlopen
 from terrymok.alerts import warnings_for
-from terrymok.interval import interval
+from terrymok.interval import interval, validate_snapshot
 
 
 class Collector:
@@ -22,8 +22,7 @@ class Collector:
 
     def observe(self, snapshot):
         # Validate even the first snapshot before keeping it as a baseline.
-        probe = dict(snapshot, uptime_seconds=snapshot['uptime_seconds'] + 1)
-        interval(snapshot, probe)
+        validate_snapshot(snapshot)
         if self.previous is None:
             self.previous = snapshot
             return {'status': 'baseline', 'active_warnings': []}

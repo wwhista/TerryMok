@@ -355,3 +355,13 @@ This validates HTTP wiring and monitoring behavior, not model quality or the
 collector CLI subprocess. Polling uses a nonzero delay to avoid identical monotonic
 clock readings on Windows. No corpus download, persistent server or raw data export
 is required. The check runs in the existing Python 3.11/3.12 CI test matrix.
+
+Snapshot validation runs before baseline storage and before identity/reset checks.
+It rejects non-object snapshots, missing/empty identities, nonfinite or negative
+uptime, boolean/nonnumeric counters, inconsistent cumulative counts (review >
+policy messages, policy messages > total, or short messages > total), and policy
+counts without a policy identity. Both cumulative totals and interval differences
+must be valid. Invalid samples become collection errors and discard collector
+state; a subsequent valid sample starts a fresh baseline. Identity strings are
+checked structurally, not authenticated. Derived fractions from incoming snapshots
+are ignored and recalculated from counters.
