@@ -1,7 +1,9 @@
 """Compare fixed candidates on validation only; never score the test set."""
 
 import json
+import io
 import platform
+from statistics import median
 from pathlib import Path
 from time import perf_counter
 
@@ -51,10 +53,23 @@ def select_model(train, validation, models=None):
         start = perf_counter()
         predictions = fitted.predict(list(val_text))
         predict_seconds = perf_counter() - start
+        repeats = []
+        for _ in range(5):
+            start = perf_counter()
+            repeated = fitted.predict(list(val_text))
+            repeats.append(perf_counter() - start)
+            if list(repeated) != list(predictions):
+                raise ValueError('Repeated predictions changed during benchmarking')
+        with io.BytesIO() as buffer:
+            joblib.dump(fitted, buffer, compress=0)
+            serialized_bytes = buffer.tell()
         score = float(f1_score(val_y, predictions, average="macro", zero_division=0))
         rows.append({"name": name, "macro_f1": score,
                      "accuracy": float(accuracy_score(val_y, predictions)),
                      "fit_seconds": fit_seconds, "validation_batch_predict_seconds": predict_seconds,
+                     "estimator_joblib_bytes": serialized_bytes,
+                     "warm_batch_predict_seconds": repeats,
+                     "warm_batch_predict_seconds_median": median(repeats),
                      "classification_report": classification_report(val_y, predictions, output_dict=True, zero_division=0)})
         if score > best_score:
             best_score, winner = score, (name, fitted)

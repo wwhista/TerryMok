@@ -365,3 +365,37 @@ must be valid. Invalid samples become collection errors and discard collector
 state; a subsequent valid sample starts a fresh baseline. Identity strings are
 checked structurally, not authenticated. Derived fractions from incoming snapshots
 are ignored and recalculated from counters.
+
+## Quality, latency and artifact-size tradeoffs
+
+Run `python -m terrymok.tradeoffs` after data preparation. It retrains the same six
+fixed candidates using train only, evaluates validation, and writes aggregate
+`reports/tradeoffs.json`. It does not replace the serving model, selected policy,
+or previous test evaluation. Selection still maximizes validation macro-F1 only.
+
+Each candidate's first full validation prediction warms the estimator; five more
+full-batch predictions are timed and checked for identical outputs. The report
+includes every duration and their median. This is in-process batch latency on
+453 messages, not single-request HTTP latency or a production capacity test.
+Uncompressed estimator-only joblib size is measured in memory; it excludes the
+artifact wrapper and is not resident/peak RAM. Training time is one observation.
+Compare timings only within this run; background load, hardware and thread pools
+can affect them. Library versions, platform, seed and prepared-data SHA are recorded.
+
+November 26 Windows/Python 3.12 run ([full aggregate report](docs/tradeoffs.json)):
+
+| Candidate | Validation macro-F1 | Estimator MiB | Median batch ms |
+| --- | ---: | ---: | ---: |
+| Majority | 0.1019 | 0.0006 | 0.059 |
+| Word LR C=0.5 | 0.7632 | 12.56 | 174.46 |
+| Word LR C=1 | 0.7697 | 12.56 | 177.54 |
+| Word LR C=2 | 0.7851 | 12.56 | 175.16 |
+| Word SVM C=1 | 0.7893 | 12.56 | 185.25 |
+| Character SVM C=1 | 0.8048 | 44.40 | 799.21 |
+
+Character SVM gains 0.0154 absolute macro-F1 over word SVM but uses about 3.54x
+serialized storage and 4.31x batch time in this run. The chosen quality-first model
+is unchanged. A latency/storage-constrained deployment may consider word SVM,
+but changing the deployed model requires its own policy and evaluation; existing
+character-model thresholds cannot be transferred. These validation results are
+selection-set measurements, not independent generalization estimates.

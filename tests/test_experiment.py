@@ -16,6 +16,14 @@ def test_selection_uses_validation_and_does_not_fit_its_vocabulary():
     assert report["candidates"][1]["macro_f1"] == 1.0
     assert "heldouttoken" not in model.named_steps["tfidf"].vocabulary_
     assert report["test_evaluated"] is False
+    import io
+    import joblib
+    buffer = io.BytesIO()
+    joblib.dump(model, buffer, compress=0)
+    measured = report['candidates'][1]
+    assert measured['estimator_joblib_bytes'] == buffer.tell()
+    assert len(measured['warm_batch_predict_seconds']) == 5
+    assert measured['warm_batch_predict_seconds_median'] >= 0
 
 
 def test_ties_are_stable_and_empty_inputs_fail():
