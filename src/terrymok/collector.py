@@ -59,12 +59,19 @@ def main():
     args = parser.parse_args()
     if not 1 <= args.port <= 65535 or not 2 <= args.samples <= 10000 or not .1 <= args.seconds <= 60:
         parser.error('Invalid port, samples (2..10000) or seconds (0.1..60)')
-    collector = Collector(args.review_limit, args.short_limit, args.min_messages, args.consecutive)
+    try:
+        collector = Collector(args.review_limit, args.short_limit, args.min_messages, args.consecutive)
+    except ValueError as error:
+        parser.error(str(error))
     def fetch():
         with urlopen(f'http://127.0.0.1:{args.port}/metrics', timeout=5) as response:
             return json.load(response)
+    failed = False
     for result in poll(collector, fetch, args.samples, args.seconds):
+        failed |= result['status'] == 'collection_error'
         print(json.dumps(result, allow_nan=False), flush=True)
+    if failed:
+        raise SystemExit(1)
 
 
 if __name__ == '__main__':

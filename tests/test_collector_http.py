@@ -2,6 +2,8 @@
 import hashlib
 import json
 import socket
+import subprocess
+import sys
 import threading
 import time
 from urllib.request import Request, urlopen
@@ -70,6 +72,16 @@ def test_http_monitoring_warning_and_recovery(tmp_path):
             assert metrics['predictions']['messages'] == 8
             assert metrics['predictions']['review_messages'] == 4
             assert metrics['completed'] == 4
+            process = subprocess.run([sys.executable, '-m', 'terrymok.collector',
+                '--port', str(port), '--samples', '2', '--seconds', '0.1',
+                '--review-limit', '.4', '--short-limit', '.7'],
+                capture_output=True, text=True, timeout=20)
+            assert process.returncode == 0, process.stderr
+            output = [json.loads(line) for line in process.stdout.splitlines()]
+            assert [row['status'] for row in output] == ['baseline', 'ok']
+            assert output[1]['interval']['messages'] == 0
+            assert output[1]['active_warnings'] == []
+            assert fetch()['completed'] == 4
         finally:
             server.should_exit = True
             thread.join(timeout=10)

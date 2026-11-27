@@ -399,3 +399,16 @@ is unchanged. A latency/storage-constrained deployment may consider word SVM,
 but changing the deployed model requires its own policy and evaluation; existing
 character-model thresholds cannot be transferred. These validation results are
 selection-set measurements, not independent generalization estimates.
+
+Collector CLI exit codes: 0 after a completed run without collection errors,
+1 if any sample failed (even if later samples recovered), and 2 for invalid
+configuration. Operational warnings alone do not cause a nonzero exit code.
+The collector still emits all requested JSONL samples after recoverable fetch
+errors; schedulers can now distinguish a failed collection run from healthy
+monitoring. Invalid thresholds/support settings produce usage errors without
+tracebacks. Inspect per-sample status to distinguish missing data from normality.
+
+The HTTP integration test also launches the real collector as a separate Python
+process against Uvicorn, validates two JSON lines and bounded termination, and
+checks that scraping leaves prediction request counters unchanged. Additional
+subprocess tests cover unavailable endpoints and malformed command arguments.
